@@ -1,0 +1,46 @@
+name: Terraform DO
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+
+    - name: Init
+      run: terraform init
+      working-directory: terraform
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_KEY }}
+
+    - name: Validate
+      run: terraform validate
+      working-directory: terraform
+
+    - name: Plan
+      run: terraform plan
+      working-directory: terraform
+      env:
+        TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
+        TF_VAR_spaces_access_key: ${{ secrets.SPACES_ACCESS_KEY }}
+        TF_VAR_spaces_secret_key: ${{ secrets.SPACES_SECRET_KEY }}
+        TF_VAR_ssh_key_id: ${{ secrets.SSH_KEY_ID }}
+
+    - name: Apply
+      if: success()
+      run: terraform apply -auto-approve
+      working-directory: terraform
+      env:
+        TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
+        TF_VAR_spaces_access_key: ${{ secrets.SPACES_ACCESS_KEY }}
+        TF_VAR_spaces_secret_key: ${{ secrets.SPACES_SECRET_KEY }}
+        TF_VAR_ssh_key_id: ${{ secrets.SSH_KEY_ID }}
